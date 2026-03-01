@@ -1,0 +1,10 @@
+{
+  "name": "remindme-tests",
+  "private": true,
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "puppeteer": "^24.0.0"
+  }
+}
