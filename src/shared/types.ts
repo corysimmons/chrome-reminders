@@ -6,6 +6,7 @@ export interface Reminder {
   authorHandle: string;
   reminderTime: number;
   createdAt: number;
+  notified?: boolean;
 }
 
 export interface TweetData {

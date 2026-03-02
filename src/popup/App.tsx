@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, RefreshCw, Download, Upload, Trash2 } from "lucide-react";
+import { Bell, Download, Upload, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -39,11 +39,6 @@ export function App() {
   useEffect(() => {
     loadReminders();
   }, [loadReminders]);
-
-  const handleCheckNow = async () => {
-    await chrome.runtime.sendMessage({ type: "CHECK_NOW" });
-    loadReminders();
-  };
 
   const handleDelete = async (id: string) => {
     await chrome.runtime.sendMessage({ type: "DELETE_REMINDER", id });
@@ -128,19 +123,6 @@ export function App() {
               </div>
             </div>
             <div className="flex gap-0.5">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={handleCheckNow}
-                    data-testid="check-now-btn"
-                  >
-                    <RefreshCw className="size-3.5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom"><p>Check now</p></TooltipContent>
-              </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button

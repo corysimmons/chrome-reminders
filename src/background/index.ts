@@ -38,9 +38,12 @@ async function saveReminders(reminders: Reminder[]): Promise<void> {
 
 async function updateBadge(): Promise<void> {
   const reminders = await getReminders();
-  if (reminders.length > 0) {
-    chrome.action.setBadgeText({ text: String(reminders.length) });
-    chrome.action.setBadgeBackgroundColor({ color: "#1d9bf0" });
+  const overdueCount = reminders.filter(
+    (r) => r.reminderTime <= Date.now()
+  ).length;
+  if (overdueCount > 0) {
+    chrome.action.setBadgeText({ text: String(overdueCount) });
+    chrome.action.setBadgeBackgroundColor({ color: "#dc2626" });
   } else {
     chrome.action.setBadgeText({ text: "" });
   }
@@ -51,15 +54,15 @@ async function updateBadge(): Promise<void> {
 async function checkReminders(): Promise<void> {
   const reminders = await getReminders();
   const now = Date.now();
-  const due = reminders.filter((r) => r.reminderTime <= now);
-  const remaining = reminders.filter((r) => r.reminderTime > now);
+  const newlyDue = reminders.filter((r) => r.reminderTime <= now && !r.notified);
 
-  for (const reminder of due) {
+  for (const reminder of newlyDue) {
     await fireNotification(reminder);
+    reminder.notified = true;
   }
 
-  if (due.length > 0) {
-    await saveReminders(remaining);
+  if (newlyDue.length > 0) {
+    await saveReminders(reminders);
   }
 
   await updateBadge();
@@ -140,12 +143,12 @@ chrome.notifications.onButtonClicked.addListener(
     } else if (buttonIndex === 1) {
       // "Snooze 1 hour"
       if (info?.reminder) {
-        const snoozed: Reminder = {
-          ...info.reminder,
-          reminderTime: Date.now() + 60 * 60 * 1000,
-        };
         const reminders = await getReminders();
-        reminders.push(snoozed);
+        const existing = reminders.find((r) => r.id === info.reminder.id);
+        if (existing) {
+          existing.reminderTime = Date.now() + 60 * 60 * 1000;
+          existing.notified = false;
+        }
         await saveReminders(reminders);
       }
     }
