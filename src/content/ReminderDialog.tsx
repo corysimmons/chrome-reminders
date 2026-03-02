@@ -69,14 +69,10 @@ export function ReminderDialog({
                 key={preset.label}
                 variant="outline"
                 size="sm"
-                className={
-                  preset.isDefault
-                    ? "h-9 text-xs font-normal bg-primary/10 text-primary border-primary/30 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
-                    : "h-9 text-xs font-normal text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/30"
-                }
+                className="h-9 text-xs font-normal text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/30"
                 onClick={() => handlePreset(preset)}
               >
-                <Icon className={preset.isDefault ? "size-3.5 text-primary" : "size-3.5 text-muted-foreground"} />
+                <Icon className="size-3.5 text-muted-foreground" />
                 {preset.label}
               </Button>
             );
