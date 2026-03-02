@@ -1,15 +1,11 @@
-import { Bell } from "lucide-react";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogMedia,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import type { Reminder, TweetData } from "@/shared/types";
 
 function formatReminderTime(timestamp: number): string {
@@ -51,47 +47,32 @@ export function ExistingReminderDialog({
   container,
 }: ExistingReminderDialogProps) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent
-        size="sm"
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
         container={container}
-        className="bg-card border-border"
+        aria-describedby={undefined}
+        className="bg-card border-border max-w-[300px] gap-3 p-5"
       >
-        <AlertDialogHeader>
-          <AlertDialogMedia className="bg-primary/10">
-            <Bell className="text-primary" />
-          </AlertDialogMedia>
-          <AlertDialogTitle className="text-base">
-            Reminder already set
-          </AlertDialogTitle>
-          <AlertDialogDescription>
+        <DialogHeader className="gap-1">
+          <DialogTitle className="text-base">Reminder already set</DialogTitle>
+          <DialogDescription>
             {formatReminderTime(reminder.reminderTime)}
             {reminder.authorHandle && (
               <span className="text-muted-foreground/60">
                 {" "}&middot; {reminder.authorHandle}
               </span>
             )}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel size="sm">Keep</AlertDialogCancel>
-          <AlertDialogAction
-            size="sm"
-            variant="outline"
-            onClick={onChangeTime}
-          >
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-1.5">
+          <Button size="sm" variant="outline" onClick={onChangeTime}>
             Change time
-          </AlertDialogAction>
-        </AlertDialogFooter>
-        <AlertDialogAction
-          size="sm"
-          variant="destructive"
-          className="mx-auto"
-          onClick={onCancel}
-        >
-          Cancel reminder
-        </AlertDialogAction>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+          <Button size="sm" variant="destructive" onClick={onCancel}>
+            Delete reminder
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -38,16 +38,8 @@ async function saveReminders(reminders: Reminder[]): Promise<void> {
 
 async function updateBadge(): Promise<void> {
   const reminders = await getReminders();
-  const now = Date.now();
-  const dueCount = reminders.filter((r) => r.reminderTime <= now).length;
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
-  const dueTodayCount = reminders.filter(
-    (r) => r.reminderTime <= todayEnd.getTime()
-  ).length;
-  const count = Math.max(dueCount, dueTodayCount);
-  if (count > 0) {
-    chrome.action.setBadgeText({ text: String(count) });
+  if (reminders.length > 0) {
+    chrome.action.setBadgeText({ text: String(reminders.length) });
     chrome.action.setBadgeBackgroundColor({ color: "#1d9bf0" });
   } else {
     chrome.action.setBadgeText({ text: "" });
