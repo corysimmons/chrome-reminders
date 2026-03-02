@@ -44,8 +44,8 @@ export function ReminderDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent container={container} className="bg-card border-border max-w-[340px] gap-3 p-5">
-        <DialogHeader className="gap-1">
+      <DialogContent container={container} className="bg-card border-border max-w-[340px] gap-3 p-5 overflow-hidden">
+        <DialogHeader className="gap-1 min-w-0">
           <DialogTitle className="text-base">Set a reminder</DialogTitle>
           <DialogDescription className="truncate text-xs">
             {tweetData.authorHandle}

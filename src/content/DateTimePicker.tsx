@@ -39,7 +39,7 @@ export function DateTimePicker({ onSetReminder, container }: DateTimePickerProps
   };
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-1.5">
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -75,7 +75,7 @@ export function DateTimePicker({ onSetReminder, container }: DateTimePickerProps
         onClick={handleSet}
         size="sm"
         className={cn(
-          "flex-1 h-8 text-xs rounded-full",
+          "h-8 text-xs rounded-full w-full",
           error && "bg-destructive hover:bg-destructive/90"
         )}
       >
