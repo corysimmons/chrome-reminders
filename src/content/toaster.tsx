@@ -7,10 +7,20 @@ import contentCss from "@/globals.css?inline";
 let toastRoot: Root | null = null;
 let toastHost: HTMLDivElement | null = null;
 
+function getSonnerCss(): string {
+  // Sonner injects a <style> into document.head at module load time.
+  // We need to copy it into our shadow root so it can style the toasts.
+  for (const el of document.querySelectorAll("style")) {
+    if (el.textContent?.includes("[data-sonner-toaster]")) {
+      return el.textContent;
+    }
+  }
+  return "";
+}
+
 function ensureToaster() {
   if (toastHost && document.body.contains(toastHost)) return;
 
-  // Create persistent shadow host
   const host = document.createElement("div");
   host.id = "remindme-toast-host";
   document.body.appendChild(host);
@@ -18,12 +28,11 @@ function ensureToaster() {
 
   const shadow = host.attachShadow({ mode: "open" });
 
-  // Inject Tailwind CSS
+  // Inject Tailwind CSS + sonner CSS into shadow root
   const style = document.createElement("style");
-  style.textContent = contentCss;
+  style.textContent = contentCss + "\n" + getSonnerCss();
   shadow.appendChild(style);
 
-  // Mount point
   const mountPoint = document.createElement("div");
   mountPoint.id = "remindme-toast-root";
   shadow.appendChild(mountPoint);
@@ -31,7 +40,6 @@ function ensureToaster() {
   const root = createRoot(mountPoint);
   toastRoot = root;
 
-  // flushSync ensures Toaster is mounted before toast() is called
   flushSync(() => {
     root.render(<Toaster />);
   });
