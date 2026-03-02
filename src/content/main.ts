@@ -2,10 +2,12 @@
 
 import { extractTweetData } from "./extract";
 import { mountDialog } from "./dialog";
+import { mountAlertDialog } from "./alert-dialog";
 import { showToast } from "./toaster";
 import type { Reminder, TweetData } from "@/shared/types";
 
 const BUTTON_MARKER = "data-remindme-injected";
+const buttonReminders = new WeakMap<HTMLButtonElement, Reminder>();
 
 // --- SVG Icons ---
 
@@ -21,12 +23,21 @@ const bellActiveIconSVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill=
 
 // --- Button active state ---
 
-function markButtonActive(buttonEl: HTMLButtonElement, reminderTime: number) {
+function markButtonActive(buttonEl: HTMLButtonElement, reminder: Reminder) {
   buttonEl.classList.add("remindme-btn-active");
   buttonEl.style.color = "rgb(29, 155, 240)";
   buttonEl.innerHTML = bellActiveIconSVG;
-  const date = new Date(reminderTime);
+  buttonReminders.set(buttonEl, reminder);
+  const date = new Date(reminder.reminderTime);
   buttonEl.title = `Reminder set for ${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+}
+
+function markButtonInactive(buttonEl: HTMLButtonElement) {
+  buttonEl.classList.remove("remindme-btn-active");
+  buttonEl.style.color = "rgb(113, 118, 123)";
+  buttonEl.innerHTML = bellIconSVG;
+  buttonReminders.delete(buttonEl);
+  buttonEl.title = "Set a reminder for this tweet";
 }
 
 // --- Set reminder ---
@@ -48,7 +59,7 @@ async function setReminder(
 
   try {
     await chrome.runtime.sendMessage({ type: "ADD_REMINDER", reminder });
-    markButtonActive(buttonEl, reminderTime);
+    markButtonActive(buttonEl, reminder);
     showToast({
       authorHandle: tweetData.authorHandle,
       tweetText: tweetData.tweetText,
@@ -73,7 +84,7 @@ async function checkExistingReminder(
       tweetId,
     });
     if (response?.reminders?.length > 0) {
-      markButtonActive(buttonEl, response.reminders[0].reminderTime);
+      markButtonActive(buttonEl, response.reminders[0]);
     }
   } catch {
     // Service worker might not be ready yet, ignore
@@ -139,10 +150,59 @@ function injectButton(articleEl: Element) {
     e.preventDefault();
     e.stopPropagation();
 
-    // If shadow host already exists, close it
+    // If any dialog already exists, close it
     const existingHost = document.getElementById("remindme-shadow-host");
     if (existingHost) {
       existingHost.remove();
+      return;
+    }
+    const existingAlertHost = document.getElementById("remindme-alert-host");
+    if (existingAlertHost) {
+      existingAlertHost.remove();
+      return;
+    }
+
+    // If a reminder already exists, show alert dialog
+    const existingReminder = buttonReminders.get(button);
+    if (existingReminder) {
+      mountAlertDialog(
+        existingReminder,
+        tweetData,
+        async () => {
+          // Cancel the reminder
+          try {
+            await chrome.runtime.sendMessage({
+              type: "DELETE_REMINDER",
+              id: existingReminder.id,
+            });
+            markButtonInactive(button);
+            showToast("Reminder cancelled");
+          } catch (err) {
+            console.error("Failed to cancel reminder:", err);
+            showToast("Failed to cancel reminder");
+          }
+        },
+        () => {
+          // Change time — open the regular reminder dialog
+          mountDialog(
+            tweetData,
+            async (timestamp) => {
+              // Delete old reminder first, then set new one
+              try {
+                await chrome.runtime.sendMessage({
+                  type: "DELETE_REMINDER",
+                  id: existingReminder.id,
+                });
+              } catch {
+                // Ignore — old one might already be gone
+              }
+              await setReminder(tweetData, timestamp, button);
+            },
+            () => {}
+          );
+        },
+        () => {} // onClose — alert dialog handles its own cleanup
+      );
       return;
     }
 
