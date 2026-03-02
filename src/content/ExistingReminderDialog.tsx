@@ -50,7 +50,6 @@ export function ExistingReminderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         container={container}
-        aria-describedby={undefined}
         className="bg-card border-border max-w-[300px] gap-3 p-5"
       >
         <DialogHeader className="gap-1">

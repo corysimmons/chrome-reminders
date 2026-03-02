@@ -211,7 +211,7 @@ export function App() {
       </div>
 
       <AlertDialog open={clearAllOpen} onOpenChange={setClearAllOpen}>
-        <AlertDialogContent size="sm" aria-describedby={undefined} className="bg-card border-border">
+        <AlertDialogContent size="sm" className="bg-card border-border">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base">Remove all reminders?</AlertDialogTitle>
             <AlertDialogDescription>

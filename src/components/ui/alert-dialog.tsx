@@ -4,34 +4,36 @@ import { AlertDialog as AlertDialogPrimitive } from "radix-ui"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
-// Radix validates AlertDialogTitle via document.getElementById which can't see
-// into shadow DOM. This hook places a hidden shim in document.body with the
-// same ID so the check passes. The callback ref fires before Radix's useEffect.
+// Radix validates AlertDialogTitle/Description via document.getElementById
+// which can't see into shadow DOM. This hook places hidden shim elements in
+// document.body with matching IDs so the checks pass. The callback ref fires
+// before Radix's useEffect.
 function useShadowDomShim(container?: HTMLElement | null) {
-  const shimRef = React.useRef<HTMLSpanElement | null>(null)
+  const shimsRef = React.useRef<HTMLSpanElement[]>([])
 
   const ref = React.useCallback(
     (node: HTMLDivElement | null) => {
-      shimRef.current?.remove()
-      shimRef.current = null
+      shimsRef.current.forEach((s) => s.remove())
+      shimsRef.current = []
       if (!node || !container) return
 
-      const titleId = node.getAttribute("aria-labelledby")
-      if (!titleId || document.getElementById(titleId)) return
-
-      const shim = document.createElement("span")
-      shim.id = titleId
-      shim.hidden = true
-      document.body.appendChild(shim)
-      shimRef.current = shim
+      for (const attr of ["aria-labelledby", "aria-describedby"]) {
+        const id = node.getAttribute(attr)
+        if (!id || document.getElementById(id)) continue
+        const shim = document.createElement("span")
+        shim.id = id
+        shim.hidden = true
+        document.body.appendChild(shim)
+        shimsRef.current.push(shim)
+      }
     },
     [container]
   )
 
   React.useEffect(() => {
     return () => {
-      shimRef.current?.remove()
-      shimRef.current = null
+      shimsRef.current.forEach((s) => s.remove())
+      shimsRef.current = []
     }
   }, [])
 
