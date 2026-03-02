@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, RefreshCw, Download, Upload } from "lucide-react";
+import { Bell, RefreshCw, Download, Upload, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +9,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { Reminder } from "@/shared/types";
 import { ReminderCard } from "./ReminderCard";
 import { EmptyState } from "./EmptyState";
@@ -83,6 +93,15 @@ export function App() {
     event.target.value = "";
   };
 
+  const [clearAllOpen, setClearAllOpen] = useState(false);
+
+  const handleClearAll = async () => {
+    for (const r of reminders) {
+      await chrome.runtime.sendMessage({ type: "DELETE_REMINDER", id: r.id });
+    }
+    loadReminders();
+  };
+
   const overdueCount = reminders.filter((r) => r.reminderTime <= Date.now()).length;
 
   return (
@@ -148,6 +167,21 @@ export function App() {
                 </TooltipTrigger>
                 <TooltipContent side="bottom"><p>Import</p></TooltipContent>
               </Tooltip>
+              {reminders.length > 0 && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => setClearAllOpen(true)}
+                      data-testid="clear-all-btn"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom"><p>Remove all</p></TooltipContent>
+                </Tooltip>
+              )}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -175,6 +209,23 @@ export function App() {
           </ScrollArea>
         )}
       </div>
+
+      <AlertDialog open={clearAllOpen} onOpenChange={setClearAllOpen}>
+        <AlertDialogContent size="sm" className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Remove all reminders?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete {reminders.length} reminder{reminders.length === 1 ? "" : "s"}. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel size="sm">Cancel</AlertDialogCancel>
+            <AlertDialogAction size="sm" variant="destructive" onClick={handleClearAll}>
+              Remove all
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </TooltipProvider>
   );
 }
