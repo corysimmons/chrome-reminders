@@ -1,5 +1,6 @@
 node_modules/
 dist/
+*.zip
 package-lock.json
 tests/package-lock.json
 dom-examples
